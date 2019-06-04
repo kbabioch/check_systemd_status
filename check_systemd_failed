@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2019 Karol Babioch <karol@babioch.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# This is a very simple script that will check for failed systemd units by
+# parsing the output of systemctl(1). It will exit with code 2 (critical),
+# when there is any failed unit and with 0 (ok) if there is none. In case of
+# failure (i.e. systemctl not available), it will exit with code 3 (unknown).
+
+from subprocess import CalledProcessError, SubprocessError
+import argparse
+import logging
+import subprocess
+import sys
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler())
+
+EXIT_OK = 0
+EXIT_WARNING = 1
+EXIT_CRITICAL = 2
+EXIT_UNKNOWN = 3
+
+parser = argparse.ArgumentParser(description='This checks for failed systemd units')
+parser.add_argument('--systemctl-path', dest='systemctl_path', help='Location of systemctl binary (systemctl in $PATH)', type=str, default='systemctl')
+parser.add_argument('-d', '--debug', dest='debug', help='Enable debugging mode', action='store_true')
+args = parser.parse_args()
+
+if args.debug:
+    logger.setLevel(logging.DEBUG)
+
+cmdline = [args.systemctl_path, "--failed", "--no-legend"]
+logger.debug("Running: %s", cmdline)
+
+try:
+    output = subprocess.check_output(cmdline, encoding=sys.getdefaultencoding())
+except (OSError, CalledProcessError, SubprocessError) as error:
+    logger.debug("Exception: %s", error)
+    print("Failed to invoke systemctl")
+    sys.exit(EXIT_UNKNOWN)
+
+logger.debug("Output: %s", repr(output))
+
+if not output:
+    print("No failed units")
+    sys.exit(EXIT_OK)
+
+# Append all found services to list
+failed = []
+for line in output.splitlines():
+    failed.append(line.split()[0])
+
+print("Failed units: {}".format(", ".join(failed)))
+sys.exit(EXIT_CRITICAL)
