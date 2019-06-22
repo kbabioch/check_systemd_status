@@ -34,7 +34,7 @@ EXIT_WARNING = 1
 EXIT_CRITICAL = 2
 EXIT_UNKNOWN = 3
 
-parser = argparse.ArgumentParser(description='This checks for failed systemd units')
+parser = argparse.ArgumentParser(description='Checks current system state as perceived by systemd')
 parser.add_argument('--systemctl-path', dest='systemctl_path', help='Location of systemctl binary (systemctl in $PATH)', type=str, default='systemctl')
 parser.add_argument('-d', '--debug', dest='debug', help='Enable debugging mode', action='store_true')
 args = parser.parse_args()
