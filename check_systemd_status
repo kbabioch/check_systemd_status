@@ -15,10 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# This is a very simple script that will check for failed systemd units by
-# parsing the output of systemctl(1). It will exit with code 2 (critical),
-# when there is any failed unit and with 0 (ok) if there is none. In case of
-# failure (i.e. systemctl not available), it will exit with code 3 (unknown).
+# This is a script that will check the systemd(1) status by parsing the output
+# of systemctl(1). It will signal warning (1) and/or critical (2) conditions
+# via the exit code when the system - as perceived by systemd - it not (yet)
+# in optimal (i.e. running) state. This can, for instance, be used as a simple
+# Nagios / Icinga check in order to monitor the overall system status.
 
 from subprocess import CalledProcessError, SubprocessError
 import argparse
