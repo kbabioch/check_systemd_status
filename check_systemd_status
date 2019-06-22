@@ -25,6 +25,7 @@ import argparse
 import logging
 import subprocess
 import sys
+import re
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -42,26 +43,57 @@ args = parser.parse_args()
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
-cmdline = [args.systemctl_path, "--failed", "--no-legend"]
-logger.debug("Running: %s", cmdline)
+def systemctl(cmdline):
+    cmdline = [args.systemctl_path, '--no-pager', '--no-legend'] + cmdline
+    logger.debug("Running: %s", cmdline)
+    try:
+        output = subprocess.check_output(cmdline, encoding=sys.getdefaultencoding())
+    except (OSError, CalledProcessError, SubprocessError) as error:
+        logger.debug("Exception: %s", error)
+        print("Failed to invoke systemctl")
+        sys.exit(EXIT_UNKNOWN)
+    logger.debug("Output: %s", repr(output))
+    return output
 
-try:
-    output = subprocess.check_output(cmdline, encoding=sys.getdefaultencoding())
-except (OSError, CalledProcessError, SubprocessError) as error:
-    logger.debug("Exception: %s", error)
-    print("Failed to invoke systemctl")
-    sys.exit(EXIT_UNKNOWN)
+def systemctl_status():
+    output = systemctl(["status"]).splitlines()[1:4]
+    status = dict()
+    status['state'] = re.match(r'^\s+State: (.*)$', output[0]).group(1)
+    status['jobs'] = int(re.match(r'^\s+Jobs: (\d+) queued$', output[1]).group(1))
+    status['failed'] = int(re.match(r'^\s+Failed: (\d+) units$', output[2]).group(1))
+    return status
 
-logger.debug("Output: %s", repr(output))
+def systemctl_failed():
+    output = systemctl(["--failed"])
+    failed = []
+    for line in output.splitlines():
+        failed.append(line.split()[0])
+    return failed
 
-if not output:
-    print("No failed units")
-    sys.exit(EXIT_OK)
+def systemctl_list_jobs():
+    output = systemctl(["list-jobs"])
+    jobs = []
+    for job in output.splitlines():
+        jobs.append(line.split()[0])
+    return jobs
 
-# Append all found services to list
-failed = []
-for line in output.splitlines():
-    failed.append(line.split()[0])
+exit = EXIT_OK
+status = systemctl_status()
 
-print("Failed units: {}".format(", ".join(failed)))
-sys.exit(EXIT_CRITICAL)
+jobs = "0"
+if status['jobs'] > 0:
+    jobs = systemctl_jobs()
+    jobs = "{} ({})".format(len(jobs), ", ".join(jobs))
+    exit = EXIT_WARNING
+
+failed = "0"
+if status['failed'] > 0:
+    failed = systemctl_failed()
+    failed = "{} ({})".format(len(failed), ", ".join(failed))
+    exit = EXIT_CRITICAL
+
+if status['state'] != 'running':
+    exit = EXIT_CRITICAL
+
+print("state: {}, jobs: {}, failed: {}".format(status['state'], jobs, failed))
+sys.exit(exit)
