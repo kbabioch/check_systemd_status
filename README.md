@@ -1,23 +1,27 @@
 # check_systemd_status
 
-This is a simple script that will check the current systemd status by parsing
-the output of `systemctl(1)`. It is intended to be used as monitoring plugin,
-i.e. in combination with Nagios and/or Icinga (2).
+This is a script that will check the systemd(1) status by parsing the output
+of systemctl(1). It will signal warning (1) and/or critical (2) conditions
+via the exit code when the system - as perceived by systemd - it not (yet)
+in optimal (i.e. running) state.
+
+This can, for instance, be used as a simple Nagios / Icinga check in order to
+monitor the overall system status.
 
 ## USAGE
 
 This script can be invoked without any additional arguments. It will, in return
-invoke `systemctl(1)` and parse its output. The `--systemctl-path` argument can
-be used to specify a location to the `systemctl(1)` binary explicitly, in case
+invoke `systemctl` and parse its output. The `--systemctl-path` argument can
+be used to specify a location to the `systemctl` binary explicitly, in case
 it is not within `$PATH`.
 
 ## EXIT CODES
 
 This plugin will exit with codes that are compliant with the typical Nagios /
 Icinga (2) [convention][icinga-exit-codes]. More specifically it will indicate
-a `critical` state when there is any failed unit. If there is no failed unit,
-the state will be `ok`.  In case of failure (i.e. `systemctl` not being
-available), it will indicate an `unknown` situation.
+a `warning` state when there are queued jobs and a `critical` state when there
+are failed units. In case of failure (i.e. `systemctl` not being available), it
+will indicate an `unknown` situation. Otherwise `ok` is being returned.
 
 ## LICENSE
 
