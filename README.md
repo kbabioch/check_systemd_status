@@ -1,8 +1,8 @@
-# check_systemd_failed
+# check_systemd_status
 
-This is a very simple script that will check for failed systemd units by
-parsing the output of `systemctl(1)`. It is intended to be used as monitoring
-plugin, i.e. in combination with Nagios and/or Icinga (2).
+This is a simple script that will check the current systemd status by parsing
+the output of `systemctl(1)`. It is intended to be used as monitoring plugin,
+i.e. in combination with Nagios and/or Icinga (2).
 
 ## USAGE
 
