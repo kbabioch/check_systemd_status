@@ -20,6 +20,6 @@ ifneq ($(strip $(DESTDIR)),)
 endif
 
 	mkdir -p $(DESTDIR)/usr/lib/monitoring-plugins
-	install -Dm775 check_systemd_failed $(DESTDIR)/usr/lib/monitoring-plugins
+	install -Dm775 check_systemd_status $(DESTDIR)/usr/lib/monitoring-plugins
 
 .PHONY: install
