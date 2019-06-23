@@ -1,0 +1,3 @@
+- Implement check for specific service (e.g. with -u parameter)
+- Use of dbus interface instead of systemctl(1)?
+- Unit testing with mocking of systemctl(1)
