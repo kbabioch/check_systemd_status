@@ -71,7 +71,7 @@ def systemctl_failed():
         failed.append(line.split()[0])
     return failed
 
-def systemctl_list_jobs():
+def systemctl_jobs():
     output = systemctl(["list-jobs"])
     jobs = []
     for job in output.splitlines():
